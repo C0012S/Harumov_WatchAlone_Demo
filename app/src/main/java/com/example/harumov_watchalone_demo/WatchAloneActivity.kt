@@ -96,6 +96,7 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
         watch_start.setOnClickListener {
             Log.d("감상 시작 : ", SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.KOREA).format(System.currentTimeMillis()))
 
+/*
             takePhoto("capture", id + "_" + movie_title + "_" + "0", id, movie_title, "0")
             sleep(1000)
             takePhoto("capture", id + "_" + movie_title + "_" + "1", id, movie_title, "1")
@@ -108,8 +109,27 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
             }
             cameraThread = CameraThread()
             cameraThread!!.start()
+*/
 
             mediaPlayer.start()
+            isPlayed = true
+
+            if (mediaPlayer != null && mediaPlayer.isPlaying) { // 미디어 플레이어 객체가 존재하는데 재생 중이면 캡처 시작
+                Log.d("캡처 시작 : ", SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.KOREA).format(System.currentTimeMillis()))
+
+                takePhoto("capture", id + "_" + movie_title + "_" + "0", id, movie_title, "0")
+                sleep(1000)
+                takePhoto("capture", id + "_" + movie_title + "_" + "1", id, movie_title, "1")
+                sleep(1000)
+                takePhoto("capture", id + "_" + movie_title + "_" + "2", id, movie_title, "2")
+                sleep(7000)
+
+                if (cameraThread != null) {
+                    cameraThread!!.endThread()
+                }
+                cameraThread = CameraThread()
+                cameraThread!!.start()
+            }
         }
 
         outputDirectory = getOutputDirectory()
@@ -119,6 +139,7 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
         // 감상종료 버튼 클릭
         watch_end.setOnClickListener {
             cameraHandler.sendEmptyMessage(WATCH_END)
+            mediaPlayer.release()
             Log.d("감상 : ", "종료되었습니다.")
 
             val intent = Intent(applicationContext, AddreviewActivity::class.java)
@@ -176,6 +197,7 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
                         Log.d("Running Time : ", "자동으로 종료되었습니다.")
 
                         cameraHandler.sendEmptyMessage(WATCH_END)
+                        mediaPlayer.release()
                         Log.d("감상 : ", "종료되었습니다.")
 
                         val intent = Intent(applicationContext, AddreviewActivity::class.java)
@@ -191,6 +213,7 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
                     Log.d("Running Time : ", "자동으로 종료되었습니다.")
 
                     cameraHandler.sendEmptyMessage(WATCH_END)
+                    mediaPlayer.release()
                     Log.d("감상 : ", "종료되었습니다.")
 
                     val intent = Intent(applicationContext, AddreviewActivity::class.java)
@@ -385,11 +408,12 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceChanged(holder : SurfaceHolder, format : Int, width : Int, height : Int) {
-
+        Log.d("SurfaceView Change : ", "surfaceChanged")
     }
 
     override fun surfaceDestroyed(holder : SurfaceHolder) {
-
+        cameraHandler.sendEmptyMessage(WATCH_END)
+        Log.d("SurfaceView Destroy : ", "surfaceDestroyed")
     }
 
     override fun onUserLeaveHint() { // 홈 버튼 감지
@@ -399,6 +423,8 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
         if (isPlayed) {
             // 이벤트 작성
+            cameraHandler.sendEmptyMessage(WATCH_END)
+            cameraExecutor.shutdown()
             mediaPlayer.release() // 홈 버튼 누른 후 다시 돌아오면 영상 종료된다. 그 후 다시 '시작' 버튼을 누르면 E/AndroidRuntime: FATAL EXCEPTION: main  Process: com.example.s3urlmediapractice, PID: 9545  java.lang.IllegalStateException: java.lang.IllegalStateException 발생
 
             var intent = Intent(applicationContext, AddreviewActivity::class.java)
@@ -409,8 +435,9 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
                 .setMessage("영화 감상이 종료됩니다.")
                 .setPositiveButton("확인",
                     DialogInterface.OnClickListener { dialog, id ->
-                    startActivity(intent) // 인텐트로 페이지 이동 시 페이지 이동 기록이 남아서 뒤로 가기 버튼을 누르면 이 페이지로 다시 돌아온다.
-//                        finish() // 액티비티 종료  // 페이지 이동 기록 남지 않는다.
+                        intent.putExtra("user_id", id)
+                        intent.putExtra("movie_title", movie_title)
+                        startActivity(intent)
                     })
                 .setCancelable(false) // 뒤로 가기 버튼과 영역 외 클릭 시 Dialog가 사라지지 않도록 한다.
             // Dialog 띄워 주기

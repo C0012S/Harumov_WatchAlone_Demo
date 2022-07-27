@@ -1,11 +1,11 @@
 package com.example.harumov_watchalone_demo
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_addreview.*
 
 class AddreviewActivity : AppCompatActivity() {
@@ -65,5 +65,9 @@ class AddreviewActivity : AppCompatActivity() {
             var intent = Intent(applicationContext, MainActivity::class.java)
             startActivityForResult(intent, 0)
         }
+    }
+
+    override fun onBackPressed() { // 뒤로 가기 버튼 막기
+        //super.onBackPressed()
     }
 }
