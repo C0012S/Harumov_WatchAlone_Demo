@@ -111,6 +111,7 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
             cameraThread!!.start()
 */
 
+            mediaPlayer.setScreenOnWhilePlaying(true)
             mediaPlayer.start()
             isPlayed = true
 
@@ -283,6 +284,7 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
                     val msg = "Photo capture succeeded: $savedUri"
 //                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
+                    Log.d("Capture time : ", SimpleDateFormat(FILENAME_FORMAT, Locale.KOREA).format(System.currentTimeMillis()))
                     uploadWithTransferUtilty(s3Bucket_FolderName, photoFile.name, photoFile)
                 }
             }
@@ -421,40 +423,44 @@ class WatchAloneActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
         Log.d("Home Button : ", "이벤트 감지")
 
-        if (isPlayed) {
-            // 이벤트 작성
-            cameraHandler.sendEmptyMessage(WATCH_END)
-            cameraExecutor.shutdown()
-            mediaPlayer.release() // 홈 버튼 누른 후 다시 돌아오면 영상 종료된다. 그 후 다시 '시작' 버튼을 누르면 E/AndroidRuntime: FATAL EXCEPTION: main  Process: com.example.s3urlmediapractice, PID: 9545  java.lang.IllegalStateException: java.lang.IllegalStateException 발생
+        if (allPermissionsGranted()) {
+            if (isPlayed) {
+                // 이벤트 작성
+                cameraHandler.sendEmptyMessage(WATCH_END)
+                cameraExecutor.shutdown()
+                Log.d("Home Button : ", "캡처 종료")
+                mediaPlayer.release()
+                Log.d("Home Button : ", "영화 재생 종료")
 
-            var intent = Intent(applicationContext, AddreviewActivity::class.java)
+                var intent = Intent(applicationContext, AddreviewActivity::class.java)
 //        startActivity(intent) // 인텐트로 페이지 이동 시 홈 버튼을 누른 후 이동할 페이지로 앱이 자동으로 다시 뜬다.
 
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle("감상 종료")
-                .setMessage("영화 감상이 종료됩니다.")
-                .setPositiveButton("확인",
-                    DialogInterface.OnClickListener { dialog, id ->
-                        intent.putExtra("user_id", id)
-                        intent.putExtra("movie_title", movie_title)
-                        startActivity(intent)
-                    })
-                .setCancelable(false) // 뒤로 가기 버튼과 영역 외 클릭 시 Dialog가 사라지지 않도록 한다.
-            // Dialog 띄워 주기
-            builder.show()
-        }
-        else {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle("영화 재선택")
-                .setMessage("영화를 다시 선택해 주세요.")
-                .setPositiveButton("확인",
-                    DialogInterface.OnClickListener { dialog, id ->
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle("감상 종료")
+                    .setMessage("영화 감상이 종료됩니다.")
+                    .setPositiveButton("확인",
+                        DialogInterface.OnClickListener { dialog, which ->
+                            intent.putExtra("user_id", id)
+                            intent.putExtra("movie_title", movie_title)
+                            startActivity(intent)
+                        })
+                    .setCancelable(false) // 뒤로 가기 버튼과 영역 외 클릭 시 Dialog가 사라지지 않도록 한다.
+                // Dialog 띄워 주기
+                builder.show()
+            }
+            else {
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle("영화 재선택")
+                    .setMessage("영화를 다시 선택해 주세요.")
+                    .setPositiveButton("확인",
+                        DialogInterface.OnClickListener { dialog, which ->
 //                    startActivity(intent) // 인텐트로 페이지 이동 시 페이지 이동 기록이 남아서 뒤로 가기 버튼을 누르면 이 페이지로 다시 돌아온다.
-                        finish() // 액티비티 종료  // 페이지 이동 기록 남지 않는다.
-                    })
-                .setCancelable(false) // 뒤로 가기 버튼과 영역 외 클릭 시 Dialog가 사라지지 않도록 한다.
-            // Dialog 띄워 주기
-            builder.show()
+                            finish() // 액티비티 종료  // 페이지 이동 기록 남지 않는다.
+                        })
+                    .setCancelable(false) // 뒤로 가기 버튼과 영역 외 클릭 시 Dialog가 사라지지 않도록 한다.
+                // Dialog 띄워 주기
+                builder.show()
+            }
         }
 
 /*
