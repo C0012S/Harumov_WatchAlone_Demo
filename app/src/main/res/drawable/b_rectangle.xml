@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#264713"/>
+    <corners android:radius="10dp"/>
+    <padding
+        android:left="15dp"
+        android:top="2dp"
+        android:right="15dp"
+        android:bottom="2dp" />
+</shape>
+
+    <!-- 출처: https://effectivecode.tistory.com/870 [Mr.후] -->
